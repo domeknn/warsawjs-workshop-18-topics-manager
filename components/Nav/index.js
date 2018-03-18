@@ -1,20 +1,20 @@
 import React, { Fragment } from 'react'
-import firebase from 'firebase'
 import { compose, withStateHandlers, withHandlers } from 'recompose'
+import firebase from 'firebase'
 
-const Nav = ({ isLogged, logIn, logOut, user, isLoading }) => (
+const Nav = ({ login, logout, user, isLoading }) => (
   <div className="nav">
     <h1 className="title">Project</h1>
     <div className="flex">
-      {isLogged ? (
+      {user ? (
         <Fragment>
-          <p className="mr-10">Hello, {user.username}</p>
-          <button onClick={logOut} className="button is-danger">
+          <p className="mr-10">Hello, {user.displayName}</p>
+          <button onClick={logout} className="button is-danger">
             Logout
           </button>
         </Fragment>
       ) : (
-        <button onClick={logIn} className={`button is-primary ${isLoading ? 'is-loading' : ''}`}>
+        <button onClick={login} className={`button is-primary ${isLoading ? 'is-loading' : ''}`}>
           Login
         </button>
       )}
@@ -25,30 +25,30 @@ const Nav = ({ isLogged, logIn, logOut, user, isLoading }) => (
 export default compose(
   withStateHandlers(
     {
-      isLogged: false,
       isLoading: false,
-      user: {},
     },
     {
-      logIn: () => user => ({
-        user,
-        isLogged: true,
-        isLoading: false,
-      }),
-      logOut: () => () => ({
-        isLogged: false,
-      }),
-      setLoading: () => () => ({
-        isLoading: true,
+      setLoading: () => isLoading => ({
+        isLoading,
       }),
     }
   ),
   withHandlers({
-    logIn: ({ logIn, setLoading }) => async () => {
+    login: ({ setLoading }) => async () => {
       const provider = new firebase.auth.GithubAuthProvider()
       setLoading(true)
       const result = await firebase.auth().signInWithPopup(provider)
-      logIn(result.additionalUserInfo)
+
+      firebase
+        .database()
+        .ref(`users`)
+        .set({
+          [result.user.uid]: result.additionalUserInfo.profile,
+        })
+      setLoading(false)
+    },
+    logout: () => () => {
+      firebase.auth().signOut()
     },
   })
 )(Nav)

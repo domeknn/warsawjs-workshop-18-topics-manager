@@ -1,6 +1,9 @@
 import React from 'react'
 import 'babel-polyfill'
 import firebase from 'firebase'
+import { compose, withStateHandlers, lifecycle } from 'recompose'
+import { pipe, keys, map, reverse } from 'ramda'
+
 import Nav from './../Nav'
 import CreateWorkshop from './../CreateWorkshop'
 import Workshops from './../Workshops'
@@ -15,12 +18,45 @@ const config = {
 }
 firebase.initializeApp(config)
 
-const Root = () => (
+const Root = ({ setUser, user, workshops }) => (
   <div className="container">
-    <Nav />
-    <CreateWorkshop />
-    <Workshops />
+    <Nav setUser={setUser} user={user} />
+    {user && <CreateWorkshop />}
+    <Workshops workshops={workshops} />
   </div>
 )
 
-export default Root
+export default compose(
+  withStateHandlers(
+    {
+      user: null,
+      workshops: null,
+    },
+    {
+      setUser: () => user => ({
+        user,
+      }),
+      setWorkshops: () => workshops => ({
+        workshops,
+      }),
+    }
+  ),
+  lifecycle({
+    componentDidMount() {
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          this.props.setUser(user)
+        } else {
+          this.props.setUser(null)
+        }
+      })
+      const workshops = firebase.database().ref(`workshops`)
+      workshops.on('value', snapshot => {
+        const values = snapshot.val()
+        this.props.setWorkshops(
+          pipe(keys, map(id => Object.assign({}, { id }, values[id])), reverse)(values)
+        )
+      })
+    },
+  })
+)(Root)

@@ -11,10 +11,15 @@
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.7.0",
     "firebase": "^4.11.0",
+    "gh-pages": "^1.1.0",
     "prettier-eslint-cli": "^4.7.1",
     "ramda": "^0.25.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "recompose": "^0.26.0"
+  },
+  "scripts": {
+    "build": "parcel build index.html --no-cache --public-url ./",
+    "deploy": "yarn build && gh-pages -d dist"
   }
 }
