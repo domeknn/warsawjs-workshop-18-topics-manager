@@ -53,9 +53,7 @@ export default compose(
       const workshops = firebase.database().ref(`workshops`)
       workshops.on('value', snapshot => {
         const values = snapshot.val()
-        this.props.setWorkshops(
-          pipe(keys, map(id => Object.assign({}, { id }, values[id])), reverse)(values)
-        )
+        this.props.setWorkshops(pipe(keys, map(id => ({ ...values[id], id })), reverse)(values))
       })
     },
   })
