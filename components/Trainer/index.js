@@ -1,15 +1,15 @@
 import React from 'react'
 
-const Trainer = () => (
+const Trainer = ({ trainer: { img, name } }) => (
   <article className="media box">
     <figure className="media-left">
       <p className="image is-64x64">
-        <img alt="" src="https://bulma.io/images/placeholders/128x128.png" />
+        <img alt="" src={img} />
       </p>
     </figure>
     <div className="media-content">
       <div className="content">
-        <p>Content</p>
+        <p>{name}</p>
       </div>
     </div>
     <div className="media-right">
