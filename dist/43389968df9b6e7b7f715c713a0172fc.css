@@ -1,0 +1,23 @@
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.hairline {
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.nav {
+  display: flex;
+  align-item:center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.search {
+  padding: 10px 0;
+  display: flex;
+  flex: 1;
+  width: 100%;
+}
