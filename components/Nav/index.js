@@ -41,10 +41,8 @@ export default compose(
 
       firebase
         .database()
-        .ref(`users`)
-        .set({
-          [result.user.uid]: result.additionalUserInfo.profile,
-        })
+        .ref(`users/${result.user.uid}`)
+        .set(result.additionalUserInfo.profile)
       setLoading(false)
     },
     logout: () => () => {

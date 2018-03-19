@@ -1,6 +1,7 @@
 import React from 'react'
 import { compose, withStateHandlers, withHandlers } from 'recompose'
 import firebase from 'firebase'
+import { inject, observer } from 'mobx-react'
 
 const CreateWorkshop = ({ value, setValue, create }) => (
   <form onSubmit={create} className="search field has-addons">
@@ -20,6 +21,8 @@ const CreateWorkshop = ({ value, setValue, create }) => (
 )
 
 export default compose(
+  inject('UserStore'),
+  observer,
   withStateHandlers(
     {
       value: '',
@@ -34,9 +37,8 @@ export default compose(
     }
   ),
   withHandlers({
-    create: ({ value, resetValue }) => e => {
+    create: ({ value, resetValue, UserStore: { user } }) => e => {
       e.preventDefault()
-      const user = firebase.auth().currentUser
 
       const key =
         user &&

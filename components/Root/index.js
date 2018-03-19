@@ -1,22 +1,13 @@
 import React from 'react'
 import 'babel-polyfill'
 import firebase from 'firebase'
-import { compose, withStateHandlers, lifecycle } from 'recompose'
+import { compose, withStateHandlers, lifecycle, withProps } from 'recompose'
 import { pipe, keys, map, reverse } from 'ramda'
+import { observer, inject } from 'mobx-react'
 
 import Nav from './../Nav'
 import CreateWorkshop from './../CreateWorkshop'
 import Workshops from './../Workshops'
-
-const config = {
-  apiKey: 'AIzaSyA8Ca6VP_uoFhP89fjtACgqxOe85jkTH3I',
-  authDomain: 'warsawjs-workshop-18.firebaseapp.com',
-  databaseURL: 'https://warsawjs-workshop-18.firebaseio.com',
-  projectId: 'warsawjs-workshop-18',
-  storageBucket: 'warsawjs-workshop-18.appspot.com',
-  messagingSenderId: '197910791795',
-}
-firebase.initializeApp(config)
 
 const Root = ({ setUser, user, workshops }) => (
   <div className="container">
@@ -27,15 +18,16 @@ const Root = ({ setUser, user, workshops }) => (
 )
 
 export default compose(
+  inject('UserStore'),
+  observer,
+  withProps(({ UserStore: { user } }) => ({
+    user,
+  })),
   withStateHandlers(
     {
-      user: null,
       workshops: null,
     },
     {
-      setUser: () => user => ({
-        user,
-      }),
       setWorkshops: () => workshops => ({
         workshops,
       }),
@@ -45,9 +37,9 @@ export default compose(
     componentDidMount() {
       firebase.auth().onAuthStateChanged(user => {
         if (user) {
-          this.props.setUser(user)
+          this.props.UserStore.setUser(user)
         } else {
-          this.props.setUser(null)
+          this.props.UserStore.setUser(null)
         }
       })
       const workshops = firebase.database().ref(`workshops`)

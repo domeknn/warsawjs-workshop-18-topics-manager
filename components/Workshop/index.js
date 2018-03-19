@@ -1,6 +1,7 @@
 import React from 'react'
-import { compose, withHandlers, withProps, withStateHandlers, lifecycle } from 'recompose'
-import { map, contains, length } from 'ramda'
+import { compose, withHandlers, withProps } from 'recompose'
+import { map, contains, length, keys } from 'ramda'
+import { inject, observer } from 'mobx-react'
 import firebase from 'firebase'
 
 import Trainer from './../Trainer'
@@ -56,42 +57,23 @@ const Workshop = props => {
 }
 
 export default compose(
-  withStateHandlers(
-    {
-      user: null,
-    },
-    {
-      setUser: () => user => ({
-        user,
-      }),
-    }
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.subscribe = firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-          this.props.setUser(user)
-        } else {
-          this.props.setUser(null)
-        }
-      })
-    },
-    componentWillUnmount() {
-      this.subscribe()
-    },
-  }),
+  inject('UserStore'),
+  observer,
+  withProps(({ UserStore: { user } }) => ({
+    user,
+  })),
   withProps(({ workshop: { trainers, likes }, user }) => ({
-    trainers: trainers ? Object.keys(trainers) : [],
-    isLiked: user && likes ? contains(user.uid, Object.keys(likes)) : false,
-    isTrainer: user && trainers ? contains(user.uid, Object.keys(trainers)) : false,
-    likes: likes ? length(Object.keys(likes)) : 0,
+    trainers: trainers ? keys(trainers) : [],
+    isLiked: user && likes && contains(user.uid, keys(likes)),
+    isTrainer: user && trainers && contains(user.uid, keys(trainers)),
+    likes: likes ? length(keys(likes)) : 0,
   })),
   withHandlers({
     add: ({ workshop: { id }, user }) => () => {
       user &&
         firebase
           .database()
-          .ref(`workshops/${id}/trainers`)
+          .ref(`workshops/${id}/trainers/${user.uid}`)
           .set({
             [user.uid]: user.uid,
           })
@@ -100,7 +82,7 @@ export default compose(
       user &&
         firebase
           .database()
-          .ref(`workshops/${id}/likes`)
+          .ref(`workshops/${id}/likes/${user.uid}`)
           .set({
             [user.uid]: user.uid,
           })

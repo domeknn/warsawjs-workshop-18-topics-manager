@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react'
 import firebase from 'firebase'
-import { compose, withStateHandlers, lifecycle, withHandlers } from 'recompose'
+import { compose, withStateHandlers, lifecycle, withHandlers, withProps } from 'recompose'
+import { inject, observer } from 'mobx-react'
 
 const Trainer = ({ user, remove, currentUser, trainer }) => (
   <article className="media box">
@@ -24,30 +25,25 @@ const Trainer = ({ user, remove, currentUser, trainer }) => (
     )}
   </article>
 )
+
 export default compose(
+  inject('UserStore'),
+  observer,
+  withProps(({ UserStore: { user } }) => ({
+    currentUser: user,
+  })),
   withStateHandlers(
     {
       user: null,
-      currentUser: null,
     },
     {
       setUser: () => user => ({
         user: user || null,
       }),
-      setCurrentUser: () => user => ({
-        currentUser: user || null,
-      }),
     }
   ),
   lifecycle({
     componentDidMount() {
-      this.subscribe = firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-          this.props.setCurrentUser(user)
-        } else {
-          this.props.setCurrentUser(null)
-        }
-      })
       firebase
         .database()
         .ref(`users/${this.props.trainer}`)
@@ -55,9 +51,6 @@ export default compose(
         .then(user => {
           this.props.setUser(user.val())
         })
-    },
-    componentWillUnmount() {
-      this.subscribe()
     },
   }),
   withHandlers({
